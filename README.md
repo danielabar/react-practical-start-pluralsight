@@ -1,3 +1,23 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [A Practical Start with React](#a-practical-start-with-react)
+  - [Should You React?](#should-you-react)
+    - [Smart DOM Updates](#smart-dom-updates)
+    - [The React Element Tree](#the-react-element-tree)
+    - [Separation of Concerns](#separation-of-concerns)
+    - [Tree Reconciliation](#tree-reconciliation)
+    - [JSX](#jsx)
+    - [The React UI Workflow](#the-react-ui-workflow)
+    - [Components](#components)
+    - [Alternatives to React](#alternatives-to-react)
+  - [Getting Ready](#getting-ready)
+    - [Production Mode](#production-mode)
+    - [VS Code](#vs-code)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # A Practical Start with React
 
 > My notes from [this Pluralsight course](https://app.pluralsight.com/library/courses/react-practical-start/table-of-contents).
@@ -126,3 +146,69 @@ If don't like the fact that UI is written in JS, and prefer to write in separate
 ![comparison table](doc-images/comparison-table.png "comparison table")
 
 Note: Writing HTML in JS may feel strange at first, but Angular and Vue write JS expressions in HTML which is also weird, and more difficult to debug.
+
+## Getting Ready
+
+Will be using [create-react-app](https://github.com/facebook/create-react-app) for scaffolding.
+
+- Install latest LTS Node
+- `npx create-react-app globomantics`, output:
+
+```shell
+Success! Created globomantics at /path/to/globomantics
+Inside that directory, you can run several commands:
+
+  npm start
+    Starts the development server.
+
+  npm run build
+    Bundles the app into static files for production.
+
+  npm test
+    Starts the test runner.
+
+  npm run eject
+    Removes this tool and copies build dependencies, configuration files
+    and scripts into the app directory. If you do this, you can’t go back!
+```
+
+- `cd globomantics`
+- `BROWSER="Firefox Developer Edition" npm start` (or just `npm start` to use default Chrome)
+
+create-react-app installs tools needed for development. Especially important:
+
+- webpack: smart bundler to package components that are in modules within the app
+- babel: transpiles jsx into javascript, also transpiles ES2015+ to ES5
+
+### Production Mode
+
+`npm run build` generates an optimized build in `build` dir.
+
+### VS Code
+
+Good support for React. Install a few extensions:
+
+- Debugger for Chrome
+- Simple React Snippets
+
+Use View -> Integrated Terminal, then can run `npm start` from within VS Code terminal rather than switching to a separate terminal app.
+
+To setup debugging:
+- Click debug button in sidebar
+- Click run icon (green caret)
+- Select `Chrome` environment
+- Opens `launch.json` - config file for vs code
+- Change port from `8080` to `3000` (port used by create-react-app dev server) and save
+- Click run icon again, this time, a separate instance of Chrome is launched
+- Open App.js and set a breakpoint in render function
+- Refresh browser (Chrome instance launched by VS Code)
+- This will hit breakpoint
+- Can also set breakpoints on JSX lines such as `<header...>`
+- Press stop button from debug controls -> didn't work for me, browser went away
+- Make some change to App.js such as changing a text value -> browser will update to reflect the change -> didn't work for me, browser went away
+
+Can also turn on File -> Autosave in VS Code to avoid having to manually save file changes.
+
+Also install [React dev tools for chrome](https://chrome.google.com/webstore/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi/related)
+
+New React tab in dev tools shows JSX, can click on components to inspect props and state of component.
