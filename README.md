@@ -48,14 +48,14 @@ react-dom library (containing everything needed for browser support, including o
 
 Object tree is not the UI, it's instructions for how UI should be rendered. React passes tree to DOM library for rendering.
 
-Philosophy: What's displayed in the brwoser is a reflection of the state of the application.
+Philosophy: What's displayed in the browser is a reflection of the state of the application.
 
 ### Tree Reconciliation
 
 In simple demo, object tree changes every second due to date change, eg:
 
 ```javascript
-Rreact.createElement(
+React.createElement(
   'div',
   { className: 'split' },
   React.createElement('input'),
