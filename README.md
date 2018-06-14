@@ -15,6 +15,11 @@
   - [Getting Ready](#getting-ready)
     - [Production Mode](#production-mode)
     - [VS Code](#vs-code)
+  - [Structuring the Application](#structuring-the-application)
+    - [The Public Folder](#the-public-folder)
+    - [The src Folder](#the-src-folder)
+    - [React's Entry Point](#reacts-entry-point)
+    - [Modules](#modules)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -212,3 +217,48 @@ Can also turn on File -> Autosave in VS Code to avoid having to manually save fi
 Also install [React dev tools for chrome](https://chrome.google.com/webstore/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi/related)
 
 New React tab in dev tools shows JSX, can click on components to inspect props and state of component.
+
+## Structuring the Application
+
+### The Public Folder
+
+Files in `public` dir are NOT processed by Webpack, they are just copied there untouched such as favicon.ico and manifest.json.
+
+[public/index.html](public/index.html) is a template. It has `%PUBLIC_URL%` which is replaced with public url when build is run.
+
+`index.html` can only reference files in public folder. Notice there are no js files referenced.
+
+### The src Folder
+
+This contains js and css files, and also logo.svg. All files in `src` dir are processed by Webpack.
+
+When running `npm start`, it adds script reference to `bundle.js` in index.html.
+
+All files in `src` folder are bundled in `bundle.js`. Contains all JSX syntax translated to JavaScript. Also all styles from .css files in src folder are incorporated in the bundle.
+
+### React's Entry Point
+
+[index.js](src/index.js) in src root folder is the entrypoint. All other files could be renamed or deleted but index.js and index.html are required.
+
+Most files in src folder are modules. Normally a module can only import another module but Babel supports also importing css into a moudle.
+
+`index.js`:
+
+```javascript
+// import react engine - no ./ prefix means webpack will look in node_modules for this module
+import React from 'react';
+// import react dom support
+import ReactDOM from 'react-dom';
+// we can also import css
+import './index.css';
+// import a custom module - file extension is ommitted, ./ means search local file system in src folder
+import App from './App';
+
+// react entrypoint
+// first argument to render specifies top level component of App - note this is jsx syntax
+// second argument is html element where component should be rendered into (this element must exist in index.html)
+ReactDOM.render(<App />, document.getElementById('root'));
+```
+
+### Modules
+
