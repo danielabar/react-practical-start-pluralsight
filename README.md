@@ -360,3 +360,47 @@ Restructure files to be clear what's used for the main page and what's needed fo
 - Change import path on `src/index.js` from `import App from './App';` to `import App from './main-page';` (this is the folder, but Webpack will understand it should load index.js from main-page folder).
 - Rename `App.css` to `main-page.css` for clarity and update import in `src/main-page/index.js`.
 
+## Understanding Components
+
+### Creating a Simple Component
+
+Creating header that shows logo and title:
+
+![header component](doc-images/header-component.png "header component")
+
+Add `src/main-page/header.js`. Header contains a function that returns jsx, and its exported:
+
+```javascript
+const Header = () => (
+  <header className="row">
+    <div className="col-md-5">
+      <img src={logo} className="logo" alt="logo" />
+    </div>
+    <div className="col-md-7 mt-5 subtitle">
+      Providing houses world wide
+    </div>
+  </header>
+);
+
+export default Header;
+```
+
+When returning jsx from a component, must always have a root node, in this case `<header>`. It's also possible to return an array of jsx nodes.
+
+Convention: Name each component starting with capital letter.
+
+Now import and use `Header` in `src/main-page/index.js` (i.e. `App`) as a tag:
+
+```javascript
+import Header from './header';
+
+class App extends Component {
+  render() {
+    return (
+      <div className="container">
+        <Header />
+      </div>
+    );
+  }
+}
+```
