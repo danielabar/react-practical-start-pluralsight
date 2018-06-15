@@ -20,6 +20,9 @@
     - [The src Folder](#the-src-folder)
     - [React's Entry Point](#reacts-entry-point)
     - [Modules](#modules)
+    - [The Top-level Component](#the-top-level-component)
+    - [Importing External Modules](#importing-external-modules)
+    - [Placing Components in Folders](#placing-components-in-folders)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -261,4 +264,99 @@ ReactDOM.render(<App />, document.getElementById('root'));
 ```
 
 ### Modules
+
+To make a js file a module, need to `export` something from it, eg:
+
+```javascript
+// module.js
+class component {
+  doSomething() {
+    // ...
+  }
+}
+export component;
+```
+
+Now another module can import it:
+
+```javascript
+// anotherModule.js
+import {component} from './module';
+component.doSomething();
+```
+
+Can export multiple members (classes, functions, variables) by separating with commas `export something, somethingElse`.
+
+Importing module must request what it wants by name, using braces `{thingToBeImported}`.
+
+Exporting module can also export one `default`, eg: `export default component;`. Then importing module does not need braces `import comp from './module';`. Note in this case the importing module can name it anything it wants, eg `comp` instead of `component`.
+
+Can combine default and others:
+
+```javascript
+// module.js
+class component {
+  doSomething() {
+    // ...
+  }
+}
+const x = 10;
+export default component, x;
+```
+
+```javascript
+// anotherModule.js
+import comp, {x} from './module';
+comp.doSomething();
+console.log(x); // 10
+```
+
+### The Top-level Component
+
+Entrypoint [index.js](globomantics/src/index.js) renders a component named `App` via `ReactDOM.render(<App />, document.getElementById('root'));`. App is the top level (i.e. root) component. The import statement `import App from './App`;` indicates it comes from local filesystem because path starts with `.`, and it's a default export because no curly braces.
+
+[App](globomantics/src/App.js) extends React Component. Each component must have a `render` function, which usually returns jsx. Note the `img` jsx:
+
+```javascript
+import logo from './logo.svg';
+...
+<img src={logo} className="App-logo" alt="logo" />
+```
+
+`src` is a prop - something component receives as an arument. Being enclosed in curly braces in jsx makes it an *expression*. Webpack will replace this with actual location of logo.
+
+Also note braces around jsx:
+
+```javascript
+return (
+  <div classname="App">
+    ...
+  </div>
+);
+```
+
+Because jsx gets converted to javascript, if there was nothing on the line, js would assume forgot semicolon if there was nothing after return keyword, and add it at end of line, and everything else after return would be ignored.
+
+### Importing External Modules
+
+Will be adding Bootstsrap to project for positioning items with its grid system and using some of its built-in css classes. Install it:
+
+```shell
+npm install bootstrap@4 --save
+```
+
+Then import it in [index.js](globomantics/src/index.js), which makes it available to *all* child components:
+
+```javascript
+import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
+```
+
+### Placing Components in Folders
+
+Restructure files to be clear what's used for the main page and what's needed for root level:
+
+- Create `main-page` folder under `src` and move `App.css`, `App.js` and `logo.svg` to it.
+- Rename `App.js` to `index.js`.
+- Change import path on `src/index.js` from `import App from './App';` to `import App from './main-page';` (this is the folder, but Webpack will understand it should load index.js from main-page folder).
+- Rename `App.css` to `main-page.css` for clarity and update import in `src/main-page/index.js`.
 
