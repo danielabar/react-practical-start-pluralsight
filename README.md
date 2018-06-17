@@ -23,6 +23,13 @@
     - [The Top-level Component](#the-top-level-component)
     - [Importing External Modules](#importing-external-modules)
     - [Placing Components in Folders](#placing-components-in-folders)
+  - [Understanding Components](#understanding-components)
+    - [Creating a Simple Component](#creating-a-simple-component)
+    - [Class and Function Components](#class-and-function-components)
+    - [Props](#props)
+    - [Fetching Data](#fetching-data)
+    - [State](#state)
+      - [State Updates](#state-updates)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -402,5 +409,138 @@ class App extends Component {
       </div>
     );
   }
+}
+```
+
+### Class and Function Components
+
+Two types of components. eg: `Header` component is just a function that returns jsx. Suitable for simple components that just need to render something.
+
+```javascript
+const Header = () => (
+  // some jsx...
+);
+
+export default Header;
+```
+
+`App` component is a class, which will have various members. Class components support state and lifecycle methods. Use for anything more complex than simple rendering.
+
+### Props
+
+All components can accept props, which are arguments that are passed in from the outside, to the component:
+
+```javascript
+<Component prop="value" />
+```
+
+First argument passed into function component is a `props` object. Properties of this object can be accessed within the component jsx using curly braces:
+
+```javascript
+const Header = (props) => (
+  <div className="whatever">
+    {props.subtitle}
+  </div>
+);
+```
+
+`props` is intended to be a *read only* object. Component that uses Header (App in our case) can pass in props:
+
+```javascript
+class App extends Component {
+  render() {
+    return (
+      <div className="container">
+        <Header subtitle="This is the actual subtitle text" />
+      </div>
+    );
+  }
+}
+```
+
+### Fetching Data
+
+For simplicity, will get data from [houses.json](globomantics/public/houses.json) rather than a real API and use `fetch` rather than a library:
+
+```javascript
+fetchHouses = () => {
+  fetch('/houses.json')
+  .then(rsp => rsp.json())
+  .then(allHouses => {
+    this.allHouses = allHouses;
+  });
+}
+```
+
+### State
+
+Private data for component:
+
+```javascript
+determineFeaturedHouse = () => {
+  if (this.allHouses) {
+    const randomIndex = Math.floor(Math.random() * this.allHouses.length);
+    const featuredHouse = this.allHouses[randomIndex];
+    this.setState({ featuredHouse })
+  }
+}
+```
+
+Props can be used to send state out to other components.
+
+Calling `setState` triggers re-render of component. React does this smartly, asynchronously, and only updating the portions of the DOM that need updating. Child components are only updated if needed. React ensures that re-rendering doesn't occur more frequently than necessary.
+
+Everything in state should be used in `render()`. If you have other data need to store in component but not rendered, store it in some other private property, but not `state`.
+
+Read by accessing state property, but should never be set directly. Use `setState` to update state, which triggers re-rendering if necessary.
+
+State updates are merged.
+
+#### State Updates
+
+State properties should first be initialized, then can add to it. In the example below property name is ommitted because its the same as the value, i.e {featuredHouse: featuredHouse}.
+
+```javascript
+setState( {featuredHouse} );
+```
+
+This updates component state (i.e. does not overwrite):
+
+```javascript
+{
+  featuredHouse
+}
+```
+
+If later add something else to state like array of countries:
+
+```javascript
+setState( {countries} );
+```
+
+Then component state is updated:
+
+```javascript
+{
+  featuredHouse,
+  countries
+}
+```
+
+To initialize state, can use Component class constructor, which receives `props` as parameter. Note must call base class constructor. State is initialized to an empty object, or can provide initial values for some or all state properties:
+
+```javascript
+constructor(props) {
+  super(props);
+  this.state = {};
+}
+```
+
+A cleaner way to initialize state is with *property initializers*:
+
+```javascript
+class MyComponent extends Component {
+  state = {}
+  ...
 }
 ```
