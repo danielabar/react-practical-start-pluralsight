@@ -35,6 +35,7 @@
       - [Lifecycle Methods: Updating](#lifecycle-methods-updating)
       - [Lifecycle Methods: Unmouting](#lifecycle-methods-unmouting)
       - [Lifecycle Methods: Error Boundary](#lifecycle-methods-error-boundary)
+    - [Error Boundaries](#error-boundaries)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -580,3 +581,24 @@ All of these are optional except `render()`:
 #### Lifecycle Methods: Error Boundary
 
 - `componentDidCatch()` Explained in next section.
+
+### Error Boundaries
+
+Component could render many child components, each of which could in turn, render other child components, etc. Something could go wrong in a child component at any level in the component tree. Could result in partially rendered component tree and error message displayed in DOM - not friendly.
+
+Handle by having root component implement `componentDidCatch()` lifecycle method and display friendly UI error if something went wrong with any of its children.
+
+```javascript
+componentDidCatch(error, info) {
+  // setting something in state will trigger a re-render
+  this.setState({has Error: true});
+  log(error, info);
+}
+
+render() {
+  if (this.state.hasError) {
+    return <h1>Whoops! Sorry!</h1>
+  }
+  return <div></div>; // whatever normal UI
+}
+```
