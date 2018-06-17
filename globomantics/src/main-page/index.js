@@ -4,10 +4,10 @@ import Header from './header';
 
 class App extends Component {
   state = {};
-  // constructor(props) {
-  //   super(props);
-  //   this.state = {};
-  // }
+
+  componentDidMount() {
+    this.fetchHouses();
+  }
 
   fetchHouses = () => {
     fetch('/houses.json')

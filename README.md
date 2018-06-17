@@ -30,6 +30,11 @@
     - [Fetching Data](#fetching-data)
     - [State](#state)
       - [State Updates](#state-updates)
+    - [Lifecycle Methods](#lifecycle-methods)
+      - [Lifecycle Methods: Mouting](#lifecycle-methods-mouting)
+      - [Lifecycle Methods: Updating](#lifecycle-methods-updating)
+      - [Lifecycle Methods: Unmouting](#lifecycle-methods-unmouting)
+      - [Lifecycle Methods: Error Boundary](#lifecycle-methods-error-boundary)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -544,3 +549,34 @@ class MyComponent extends Component {
   ...
 }
 ```
+
+### Lifecycle Methods
+
+Called automatically by React on a class component, when the lifecycle status of a component changes.
+
+Example, good place to fetch data is in `componentDidMount`, executed just after component is mounted.
+
+**Mounting:** Adding a component to the tree of react components, which is the DOM.
+
+#### Lifecycle Methods: Mouting
+
+All of these are optional except `render()`:
+
+- `constructor()` Initialize state or other initialization needed by the component class.
+- `render()` Return jsx or text that is rendered directly in browser or `null` to render nothing.
+- `componentDidMount()` Occurs just after rendering, can do initialization here that needs DOM.
+
+#### Lifecycle Methods: Updating
+
+- `getDerivedStateFromProps()` Occurs just before props are received.
+- `shouldComponentUpdate()` Default behaviour is for every state change to trigger re-render, but can return false here to stop re-rendering.
+- `render()`
+- `componentDidUpdate()`
+-
+#### Lifecycle Methods: Unmouting
+
+- `componentWillUnmount()` Called just before component is removed from DOM.
+
+#### Lifecycle Methods: Error Boundary
+
+- `componentDidCatch()` Explained in next section.
