@@ -44,6 +44,12 @@
     - [Multiple Layers of Components](#multiple-layers-of-components)
     - [Varying Render Output with Component Variables](#varying-render-output-with-component-variables)
     - [Form Controls](#form-controls)
+  - [Augmenting Features and Tooling](#augmenting-features-and-tooling)
+    - [Separating State and UI](#separating-state-and-ui)
+    - [Type Checking](#type-checking)
+    - [React Router](#react-router)
+    - [Context](#context)
+      - [Provider and Consumer](#provider-and-consumer)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -877,3 +883,200 @@ render() {
   {inquiry}
 }
 ```
+
+## Augmenting Features and Tooling
+
+### Separating State and UI
+
+Best practice - separation of concerns, too much to have state, logic and UI all in one class. But separating can introduce some complexity.
+
+eg: `App` root component contains too much business logic mixed in with render:
+
+![app code outline](doc-images/app-code-outline.png "app code outline")
+
+Another approach is to introduce `src/main-page/app-presentation.js` which contains a *function component* that only handles the render logic. This component does not use state, it expects everything passed in via `props`.
+
+```javascript
+const AppPresentation = (props) => {
+  let activeComponent = null;
+  if (props.country) {
+    activeComponent = <SearchResults
+                        country={props.country}
+                        filteredHouses={props.filteredHouses}
+                        setActiveHouse={this.setActiveHouse}
+                      />;
+  }
+  if (props.activeHouse) {
+    activeComponent = <HouseDetail house={props.activeHouse} />
+  }
+  if (!activeComponent) {
+    activeComponent = <FeaturedHouse house={props.featuredHouse} />
+  }
+
+  return (
+    <div className="container">
+      <Header subtitle="Providing houses all over the world"/>
+      <HouseFilter countries={props.countries} filterHouses={this.filterHouses} />
+      {activeComponent}
+    </div>
+  );
+}
+
+export default AppPresentation;
+```
+
+Then in `App` component, modify `render()` method to return new `<AppPresentation>` component:
+
+```javascript
+render() {
+  return (
+    <AppPresentation
+      country={this.state.country}
+      filteredHouses={this.state.filteredHouses}
+      featuredHouse={this.state.featuredHouse}
+      countries={this.state.countries}
+      filterHouses={this.filterHouses}
+      activeHouse={this.state.activeHouse}
+      setActiveHouse={this.setActiveHouse}
+    />
+  );
+}
+```
+
+### Type Checking
+
+```shell
+npm i --save prop-types
+```
+
+Then use it in `HouseDetail` component by typing `impt` tab -> `import PropTypes from 'prop-types'`. Then add just before export, tell PropTypes that the `house` property is required:
+
+```javascript
+HouseDetail.propTypes = {house: PropTypes.object.isRequired}
+```
+
+To seee this validation in action, edit `FeaturedHouse` component, and remove house prop pased to `HouseDetail`:
+
+```javascript
+// before
+<HouseDetail house={props.house} />
+// after
+<HouseDetail />
+```
+
+Then notice error in dev tools console clearly states the issue:
+
+![proptypes error](doc-images/proptypes-error.png "prop types error")
+
+Useful to add this to all components to make debugging easier.
+
+Validation checks only run when app is in DEVELOPMENT mode.
+
+### React Router
+
+[Simple Demo](siple-demo/src/App.js)
+
+Demo app so far only works on root url. Selecting a country does not update url so if browser is refrehed, goes back to no country selected. Also browser back button doesn't work because effectively there is only one page.
+
+Solution is *React Router*, which is another set of components.
+
+Build a new simple demo app, then will add react router:
+
+```shell
+npx create-react-app simple-demo
+cd simple-demo
+npm i --save react-router-dom
+```
+
+In root `App` component, use the router:
+
+```javascript
+import { BrowserRouter, Link, Switch, Route } from 'react-router-dom';
+...
+class App extends Component {
+  render() {
+    return (
+      <BrowserRouter>
+        <div className="App">
+          <header className="App-header">
+            <img src={logo} className="App-logo" alt="logo" />
+            <h1 className="App-title">Welcome to React</h1>
+          </header>
+          <ul>
+            <li><Link to="/">Home</Link></li>
+            <li><Link to="/search">Search</Link></li>
+            <li><Link to="/list">List</Link></li>
+          </ul>
+          <Switch>
+            <Route exact path="/" component={Root} />
+            <Route path="/search" component={Search} />
+            <Route path="/list" component={LIst} />
+          </Switch>
+        </div>
+      </BrowserRouter>
+    );
+  }
+}
+```
+
+`BrowserRouter` is the router component. Tracks browser history and makes it available to all child routing components. Assumes app is running on server that can handle dynamic requests. If you're on a server that can only serve static files, use `HashRouter`.
+
+Links are rendered with `Link` component which is also part of react router. Each `Link` points to a relative url.
+
+`Route` component determines what should happen when a given relative url is hit.
+
+`Switch` component that wraps the `Route` components makes it a *routing table* - React will start with first entry, and work its way down the list until a match is found for current url in browser. When a match is found, it stops and does not evaluate any further routes.
+
+By default, router also matches on partial matches, which would always match root path `"/"`. To avoid this, mark routes that should not be partially matched with `exact` attribute.
+
+### Context
+
+Component tree can grow quickly. How to deal with global information needed by all components? eg: user language setting, logged in user name etc. Could use `props` but would be tedious to pass same info over and over to each component.
+
+`Context` is solution, eg: handling `theme` (such as dark or light) in all components:
+
+```javascript
+// simple example just a string, could also be an object
+// typically would not be in same file as App but rather, exported from a module,
+// and import into component modules that need it.
+const ThemeContext = React.createContext('light');
+
+// Root level component declares that it is a context provider using `ThemeContext.Provider`
+// and provides the value `dark`.
+// Since context has default value in this example, not strictly necessary to provide a value,
+// any consumer would otherwise get default value.
+class App extends React.Component {
+  render() {
+    return (
+      <ThemeContext.Provider value="dark">
+        <Toolbar />
+      </ThemeContext.Provider>
+    );
+  }
+}
+
+// No need to pass `theme` as prop to ThemedButton
+function Toolbar(props) {
+  return (
+    <div>
+      <ThemedButton />
+    </div>
+  )
+}
+
+// This component uses the context by declaring itself as a consumer via `ThemeContext.Consumer`
+// Value is available with an arrow function.
+function ThemedButton(props) {
+  return (
+    <ThemeContext.Consumer>
+      {theme => <Button {...props} theme={theme} />}
+    </ThemeContext.Consumer>
+  )
+}
+```
+
+#### Provider and Consumer
+
+Support dynamic context, rather than hard-coded provided string, could be retrieved programmatically, for eg from state or props.
+
+Context will automatically update the value across all children that use it, i.e. there could be multiple consumers.
