@@ -36,6 +36,14 @@
       - [Lifecycle Methods: Unmouting](#lifecycle-methods-unmouting)
       - [Lifecycle Methods: Error Boundary](#lifecycle-methods-error-boundary)
     - [Error Boundaries](#error-boundaries)
+    - [Nesting Components](#nesting-components)
+    - [Binding Component Props](#binding-component-props)
+    - [Mapping Arrays to Components](#mapping-arrays-to-components)
+    - [Passing Functions to Child Components](#passing-functions-to-child-components)
+    - [Components in Variables](#components-in-variables)
+    - [Multiple Layers of Components](#multiple-layers-of-components)
+    - [Varying Render Output with Component Variables](#varying-render-output-with-component-variables)
+    - [Form Controls](#form-controls)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -591,7 +599,7 @@ Handle by having root component implement `componentDidCatch()` lifecycle method
 ```javascript
 componentDidCatch(error, info) {
   // setting something in state will trigger a re-render
-  this.setState({has Error: true});
+  this.setState({hasError: true});
   log(error, info);
 }
 
@@ -600,5 +608,272 @@ render() {
     return <h1>Whoops! Sorry!</h1>
   }
   return <div></div>; // whatever normal UI
+}
+```
+
+### Nesting Components
+
+Will created `FeaturedHouse` component, containing a banner, and another component `House`.
+
+![featured house component](doc-images/featured-house-component.png "featured house component")
+
+Start with [featured-house.js](src/main-page/featured-house.js).
+
+React snippets tip for VS Code:
+- `imr` tab for importing React.
+- `imrc` tab for importing React and Component.
+- `sfc` tab for stateless function component, then type name of component.
+- `cc` tab for class component
+
+`House` component consists of multiple files so create a new folder for it under `src`.
+
+To use the `House` component inside the `FeaturedHouse` component, must import it, specifying the folder, since House component is in `src/house/index.js`:
+
+```javascript
+// src/house/index.js
+import House from '../house';
+```
+
+To use `FeaturedHouse` in `App`, import it, then render it, passing in `house` prop, getting its value from state. So whenever `setState` will be called to set an updated `featuredHouse`, the `FeaturedHouse` component will re-render.
+
+```javascript
+// src/main-page/index.js
+import FeaturedHouse from './featured-house';
+...
+render() {
+  return (
+    ...
+    <FeaturedHouse house={this.state.featuredHouse} />
+    ...
+  );
+}
+```
+
+### Binding Component Props
+
+Building filter-by-country component, which will require list of distinct countries. This logic will live in `src/main-page/index.js` in `determineUniqueCountries` method. This method is invoked in the `fetchHouses` method, which is invoked by lifecycle method `componentDidMount`.
+
+Add new HouseFilter component in `src/main-page/house-filter.js`. This component renders a `<select>` dropdown:
+- The `value` prop of the `<select>` element is *bound* to `search` property in state.
+- When user selects a value, `setState` is automatically called by component to change search value.
+- `onChange` event is bound to a function so we can do some processing whenever the value changes.
+- `<option>` list will be covered in next section.
+
+```javascript
+onSearchChange = (e) => {
+  // do something...
+}
+
+render() {
+  const search = this.state.search;
+  const countries = this.props.countries || [];
+
+  return (
+    ...
+    <select className="form-control" value={search} onChange={this.onSearchChange}>
+      {countries.map((c) => <option key={c} value={c}>{c}</option>)}
+    </select>
+    ...
+  );
+}
+```
+
+### Mapping Arrays to Components
+
+`map` function used to create `<option>` element for each country, mapping over each entry of `countries` array, which comes in via `props`. Value of each option is country string, display text for each option is the same.
+
+When rendering a list of components from an array, React needs to know which component to update when a given item in array changes. This is why unique `key` prop must be specified for each component.
+
+```javascript
+const countries = this.props.countries || [];
+...
+{countries.map((c) => <option key={c} value={c}>{c}</option>)}
+...
+```
+
+### Passing Functions to Child Components
+
+We want the App root component to perform house filtering because it maintains the list of houses, rather than the HouseFilter component. To do this, pass a function defined in App component as a prop to the HouseFilter component:
+
+```javascript
+// Parent
+filter = (country) => {
+  // do the filtering...
+}
+
+render() {
+  <HouseFilter filterHouses = {this.filter}} />
+}
+```
+
+```javascript
+// Child
+onSearchChange = (arg) => {
+  this.props.filterHouses(country); // will invoke Parent filter function
+}
+```
+
+### Components in Variables
+
+`src/search-results` folder has a root component `index.js` that renders a table, and child component in `search-results-row.js` that renders an individual search result. Rather than rendering everything inline, can define a variable to hold the result of mapping over an array to create a list of components, then use that as an expression in jsx:
+
+```javascript
+const SearchReults = (props) => {
+  // an array of SearchResultsRow components, will be rendered later in return statement as expression
+  const houseRows = props.filteredHouses.map(h =>
+    <SearchResultsRow key={h.id.toString()} house={h} setActiveHouse={props.setActiveHouse} />
+  );
+
+  return (
+    <div className="mt-2">
+      <h4>Results for {props.country}:</h4>
+      <table className="table table-hover">
+        <tbody>
+          {houseRows}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+```
+
+### Multiple Layers of Components
+
+Overview of search feature:
+
+App -> SearchResults -> SearchResultsRow
+
+`App` is root component which renders `SearchResults` component, but only when a country is selected in `SearchFilter` component.
+
+`SearchResults` component renders multiple `SearchResultsRow` child components.
+
+Root component contains `setActiveHouse` function, passed as prop in to `SearchResults` component, which in turn does not use it directly, but rather passes it in to each `SearchResultsRow` component.
+
+When a row is clicked (this behaviour defined in `SearchResultsRow` component), it invokes the `setActiveHouse` function that was passed in ultimately from root `App` component.
+
+`setActiveHouse` in root `App` component will make the active house part of state.
+
+When there is an active house, it should be rendered instead of the featured house.
+
+![component hierarchy](doc-images/component-hierarchy.png "component hierarchy")
+
+### Varying Render Output with Component Variables
+
+`setActiveHouse` implemented in root `App` component:
+
+```javascript
+setActiveHouse = (house) => {
+  this.setState({activeHouse: house});
+}
+```
+
+`App` component `render()` method needs to change such that `FeaturedHouse` is only displayed when user did not select a country. If a country has been selected, should instead display a grid with search results. And when user clicks a row in grid, should display selected house.
+
+Solution to this is to use a variable `activeComponent`, set it to the appropriate component based on several conditions, then render it:
+
+```javascript
+render() {
+  let activeComponent = null;
+  if (this.state.country) {
+    activeComponent = <SearchResults
+                        country={this.state.country}
+                        filteredHouses={this.state.filteredHouses}
+                        setActiveHouse={this.setActiveHouse}
+                      />;
+  }
+  if (this.state.activeHouse) {
+    activeComponent = <HouseDetail house={this.state.activeHouse} />
+  }
+  if (!activeComponent) {
+    activeComponent = <FeaturedHouse house={this.state.featuredHouse} />
+  }
+
+  return (
+    <div className="container">
+      <Header subtitle="Providing houses all over the world"/>
+      <HouseFilter countries={this.state.countries} filterHouses={this.filterHouses} />
+      {activeComponent}
+    </div>
+  );
+}
+```
+
+### Form Controls
+
+Allow user to submit feedback on a house if they're interested.
+
+![feedback form](doc-images/feedback-form.png "feedback form")
+
+To implement, place `Email.png` and `Inquiry` component in `src/house` folder.
+
+`Inquiry` component initializes state with empty string values corresponding to input fields that are rendered in html form (name, email, remarks).
+
+Form contains input fields whose values are bound to state properties, and `onChange` event bound to a method in component:
+
+```javascript
+onNameChange = (e) => {
+  e.preventDefault();
+  // update state with new value
+  this.setState({ name: e.target.value });
+}
+...
+<input
+  type="text"
+  className="form-control"
+  placeholder="Name"
+  id="name"
+  value={this.state.name}
+  onChange={this.onNameChange}
+/>
+```
+
+Every call to `setState` will re-rener as needed, which will cause submit button to become enabled when name and email are populated. Submit button also has `onClick` change handler
+
+```javascript
+onSubmit = (e) => {
+  e.preventDefault();
+  const house = this.props.house;
+  const contactInfo = this.state;
+  //send
+}
+...
+<button
+  className="btn btn-primary"
+  disabled={this.state.name.length === 0 || this.state.email.length === 0}
+  onClick={this.onSubmit}
+>
+  Submit
+</button>
+```
+
+To use this new component, import it into `House` component. Note that also the image is imported:
+
+```javascript
+// src/house/index.js
+import emailIcon from './Email.png';
+import Inquity from './inquiry';
+...
+```
+
+Use a state property to toggle display of inqiury form, and when email icon image is clicked, the value is toggled. Then use a variable to control rendering.
+
+```javascript
+// src/house/index.js
+state = {
+  inquiryShown: false
+}
+...
+inquiryToggle = () => {
+  this.setState({
+    inquiryShown: ~this.state.inquryShown
+  });
+}
+...
+render() {
+  const house = this.props.house;
+  const inquiry = this.state.inquiryShown ? <Inquiry house={house} /> : null;
+  ...
+  <img src={emailIcon} height="50" alt="inquiry" onClick={this.inquiryToggle} />
+  {inquiry}
 }
 ```
