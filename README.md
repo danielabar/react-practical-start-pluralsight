@@ -52,6 +52,8 @@
       - [Provider and Consumer](#provider-and-consumer)
     - [Flux and Redux](#flux-and-redux)
     - [Ejecting](#ejecting)
+    - [Unit Testing with Jest](#unit-testing-with-jest)
+    - [Progressive Web Apps](#progressive-web-apps)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -1114,3 +1116,54 @@ Used for changing the create-react-app default build configuration. eg: add some
 ```shell
 npm run eject
 ```
+
+`config` dir contains all js files that make up development pipeline.
+
+Downside is if there's an improvement or bugfix to `react-scripts` you can't use it anymore, have to manually maintain webpack config files.
+
+For a compromise, look into [custom-react-scripts](https://github.com/kitze/custom-react-scripts).
+
+### Unit Testing with Jest
+
+create-react-app comes with `App.test.js` with a sample unit test, just verifies that component renders with no exceptions:
+
+```javascript
+import React from 'react';
+import ReactDOM from 'react-dom';
+import App from './App';
+
+it('renders without crashing', () => {
+  // create a div
+  const div = document.createElement('div');
+  // render root component into div
+  ReactDOM.render(<App />, div);
+  // unmount component
+  ReactDOM.unmountComponentAtNode(div);
+});
+```
+
+Jest test runner is used, to run the tests run `npm test` in terminal.
+
+Can also use `expect` global function to assert conditions.
+
+### Progressive Web Apps
+
+Production build of default create-react-app is an offline-first progressive web app.
+
+PWAs - faster, more reliable than traditional web page, better mobile experience.
+
+![pwa](doc-images/pwa.png "pwa")
+
+Browser requests app with all assets (js, css, images etc.) from server.
+
+Response is cached by service worker, see [registerServiceWorker.js](simple-demo/src/registerServiceWorker.js)
+
+On subsequent requests, files needed are served from cache instead of server.
+
+In the background, service worker checks server for updates at regular intervals if connection is available.
+
+Possible for clients to occasionally see outdated version of app if service worker hasn't updated yet.
+
+Good for devices not having constant connection to internet.
+
+Extra work to maintain offline support, especially with api/server interaction.
