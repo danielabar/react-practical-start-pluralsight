@@ -50,6 +50,8 @@
     - [React Router](#react-router)
     - [Context](#context)
       - [Provider and Consumer](#provider-and-consumer)
+    - [Flux and Redux](#flux-and-redux)
+    - [Ejecting](#ejecting)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -1080,3 +1082,35 @@ function ThemedButton(props) {
 Support dynamic context, rather than hard-coded provided string, could be retrieved programmatically, for eg from state or props.
 
 Context will automatically update the value across all children that use it, i.e. there could be multiple consumers.
+
+### Flux and Redux
+
+Flux: Architectural pattern
+
+Redux: An implementation of Flux
+
+Needed for complex applications. eg - when actions trigger cascading updates leading to unpredictable state of UI. Avoid issue of top level components having too much logic and responsibility.
+
+Most imporant concept: State should be stored outside of components.
+
+This course only covers concept of flux:
+
+![flux](doc-images/flux.png "flux")
+
+View: React component. When something happens in the view that other components in app may be interested in, creates an *Action*.
+
+Action: Object with data defining what has happened with context information.
+
+Dispathcer: Responsible for watching incoming actions. Receives and distributes actions to stores.
+
+Store: Determines if action is relevant, if yes, changes its state and instructs View to re-render.
+
+Dispathcer may have multiple subscribing stores that each take care of updating a particular view.
+
+### Ejecting
+
+Used for changing the create-react-app default build configuration. eg: add something to build pipeline, change babel setting etc.
+
+```shell
+npm run eject
+```
